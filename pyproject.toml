@@ -1,0 +1,31 @@
+[project]
+name = "duckdb-bigquery-etl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Anass Nabil", email = "Anassnabil067@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "db-dtypes>=1.7.1",
+    "dbt-duckdb[md]>=1.11.0",
+    "duckdb>=1.5.5",
+    "fire>=0.7.1",
+    "google-cloud-bigquery>=3.45.0",
+    "google-cloud-bigquery-storage>=2.41.0",
+    "loguru>=0.7.3",
+    "pandas>=3.0.5",
+    "pyarrow>=25.0.1",
+    "pydantic>=2.13.5",
+    "pytest>=9.1.1",
+    "python-dotenv>=1.2.3",
+    "ruff>=0.16.6",
+]
+
+[project.scripts]
+duckdb-bigquery-etl = "duckdb_bigquery_etl:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"

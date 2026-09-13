@@ -1,0 +1,3 @@
+- there is a problem when the the command fails i should rerun all the jobs even some of them are passed succeful
+- Where is the `.duckdb` file located in the ingestion step 
+- Better change the name of the uploaded file 

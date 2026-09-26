@@ -11,3 +11,6 @@ wheels/
 .env
 gcp/
 *.csv
+*.duckdb
+*.parquet
+logs/ 

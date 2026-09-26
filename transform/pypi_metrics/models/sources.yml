@@ -1,8 +1,8 @@
 version: 2
 
 sources:
-  - name: external_source
-    meta:
-      external_location: "{{ env_var('TRANSFORM_S3_PATH_OUTPUT', 'my-bucket-path') }}"
-    tables:
-      - name: pypi_file_downloads
+- name: external_source
+  database: "{{ env_var('TRANSFORM_DATABASE', 'pypi_remote') }}"
+  schema: "{{ env_var('TRANSFORM_SCHEMA', 'main') }}"
+  tables:
+  - name: raw_pypi_downloads

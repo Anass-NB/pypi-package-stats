@@ -16,10 +16,7 @@ WITH pre_aggregated_data AS (
             )
         END AS python_version
     FROM
-    's3://us-prd-motherduck-open-datasets/pypi/sample_tutorial/pypi_file_downloads/*/*/*.parquet'
-    WHERE
-        download_date >= '{{ var("START_DATE") }}'
-        AND download_date < '{{ var("END_DATE") }}'
+    {{ source("external_source", "raw_pypi_downloads") }}
 )
 
 SELECT

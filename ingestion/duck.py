@@ -35,7 +35,7 @@ def write_to_md_from_duckdb(
     logger.info(f"Writing data to motherduck {remote_database}.main.{table}")
     duckdb_con.sql(f"CREATE DATABASE IF NOT EXISTS {remote_database}")
     duckdb_con.sql(
-        f"CREATE TABLE IF NOT EXISTS {remote_database}.{table} AS SELECT * FROM {local_database}.{table} limit 0"
+        f"CREATE OR REPLACE TABLE  {remote_database}.{table} AS SELECT * FROM {local_database}.{table} limit 0"
     )
     # Delete any existing data in the date range
     duckdb_con.sql(
@@ -44,8 +44,8 @@ def write_to_md_from_duckdb(
     # Insert new data
     duckdb_con.sql(
         f"""
-    INSERT INTO {remote_database}.main.{table}
-    SELECT *
+        INSERT INTO {remote_database}.main.{table}
+        SELECT *
         FROM {local_database}.{table}"""
     )
     logger.success(f"Data saved to motherduck {remote_database}.main.{table}")

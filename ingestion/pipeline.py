@@ -16,7 +16,6 @@ def main(params: PypiJobParameters):
 
     create_table_from_dataframe(conn,params.table_name,df)
     if "local" in params.destination:
-        
         local_path = f"{params.pypi_project}_{params.table_name}_{params.start_date}_{params.end_date}.csv"
         logger.info(f"LOADING DATA  TO LOCAL FILE: {local_path}")
         conn.sql(f"COPY {params.table_name} TO '{local_path}';")

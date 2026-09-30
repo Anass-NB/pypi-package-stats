@@ -1,0 +1,9 @@
+# models/staging/pypi/stg_pypi__downloads.yml
+version: 2
+
+models:
+- name: stg_pypi__downloads
+  description: One row per PyPI file download event, flattened from the raw nested JSON.
+  columns:
+  - name: downloaded_at
+    tests: [ not_null ]

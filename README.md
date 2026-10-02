@@ -96,7 +96,7 @@ git clone https://github.com/Anass-NB/pypi-package-stats.git
 cd pypi-package-stats
 ```
 
-Use `example.env` as a template file for `.env` and fill your env variables by: 
+Use `.env.template` as a template file for `.env` and fill your env variables by: 
 - get the json file of the gcp to get the data from bigquery 
 - if are using motherDuck get your token from motherDuck UI
 - Fill your project name and other variables like database name , start and end date , destination storage ...

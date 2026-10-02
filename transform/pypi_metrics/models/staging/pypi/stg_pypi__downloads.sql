@@ -47,12 +47,7 @@ renamed AS(
 
 
     FROM source
-
-
-
-
 )
-
 
 
 

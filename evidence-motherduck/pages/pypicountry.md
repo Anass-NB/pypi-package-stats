@@ -32,19 +32,34 @@ FROM motherduck.total_downloads_last_month
 ## Downloads per Week
 
 
-
 ```sql downloads_per_week
 SELECT * 
 FROM motherduck.downloads_per_week
 ```
 
 
-
 <LineChart
     data={downloads_per_week}
-    x=month_d
+    x=week_start
     y=weekly_download_sum
     title="Downloads over week"
+/>
+
+
+## Downloads per Day
+
+
+```sql downloads_per_day
+SELECT * 
+FROM motherduck.downloads_per_day
+```
+
+
+<LineChart
+    data={downloads_per_day}
+    x=download_date
+    y=daily_downloads
+    title="Downloads per Day"
 />
 
 

@@ -1,12 +1,10 @@
 ---
-title: Welcome to Evidence
+title: PyPI Downloads Dashboard
 ---
 
 
-```test_connection
-
-select 1 from motherduck.nyc_service_request_volume limit 1 
-
+```sql test_connection
+select 1 from motherduck.total_downloads limit 1
 ```
 
 
@@ -19,53 +17,78 @@ select 1 from motherduck.nyc_service_request_volume limit 1
 
 {:else}
 
-## NYC Service Requests
+## Total Downloads
 
-<Slider 
-    defaultValue=7
-    title='Rolling Average'
-    min=2
-    max=90
-    name=rolling_avg
-/> 
-
-```sql daily_service_requests
-
-select 
-    *,
-    avg(requests) over(order by "created_date" asc
-                       RANGE BETWEEN INTERVAL ${inputs.rolling_avg} DAYS PRECEDING
-                       AND INTERVAL 0 DAYS FOLLOWING) as rolling_average
-from motherduck.nyc_service_request_volume 
-
+```sql total_downloads
+SELECT * 
+FROM motherduck.total_downloads
 ```
 
+<Value
+    data={total_downloads}
+    column=total_downloads
+    title="Total Downloads"
+    fmt="num"
+/>
 
-<Chart 
-    data={daily_service_requests} 
-    x=created_date
-    title={`Daily Request Volume and ${inputs.rolling_avg} Day Rolling Average`}
-    renderer='svg'
->
-    <Line 
-        y=rolling_average
-        lineColor=black
-    /> 
-    <Scatter 
-        y=requests 
-        pointSize=3
-        opacity=0.3
-        fillColor=gray
-    /> 
-</Chart>
+## Total Downloads Last 30 Days
 
+```sql total_downloads_last_month
+SELECT * 
+FROM motherduck.total_downloads_last_month
+```
 
-<Histogram 
-    data={daily_service_requests} 
-    x=requests
-    fillColor=black
-/> 
+<Value
+    data={total_downloads_last_month}
+    column=total_downloads_last_month
+    title="Total Downloads Last Month"
+    fmt="num"
+/>
 
+## Downloads per Day
+
+```sql downloads_per_day
+SELECT * 
+FROM motherduck.downloads_per_day
+```
+
+<LineChart
+    data={downloads_per_day}
+    x=download_date
+    y=daily_downloads
+    title="Downloads per Day (Last 30 Days)"
+/>
+
+## Downloads per Week
+
+```sql downloads_per_week
+SELECT * 
+FROM motherduck.downloads_per_week
+```
+
+<LineChart
+    data={downloads_per_week}
+    x=week_start
+    y=weekly_download_sum
+    title="Downloads per Week (Last 12 Weeks)"
+/>
+
+## Top 10 Countries
+
+```sql downloads_by_country
+SELECT *
+FROM motherduck.downloads_by_country
+ORDER BY total DESC
+LIMIT 10
+```
+
+<BarChart
+    data={downloads_by_country}
+    x=country_code
+    y=total
+    title="Top 10 PyPI Downloads by Country"
+    swapXY=true
+/>
 
 ## What's Next?
 - Edit the markdown files in the `pages` folder
@@ -79,6 +102,3 @@ from motherduck.nyc_service_request_volume
 - Open an issue on [Github](https://github.com/evidence-dev/evidence)
 
 {/if}
-
-
-

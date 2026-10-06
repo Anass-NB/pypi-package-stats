@@ -2,8 +2,46 @@
 version: 2
 
 models:
-- name: stg_pypi__downloads
-  description: One row per PyPI file download event, flattened from the raw nested JSON.
-  columns:
-  - name: downloaded_at
-    tests: [ not_null ]
+  - name: stg_pypi__downloads
+    description: One row per PyPI file download event, flattened from the raw nested JSON. Light cleaning only (rename + timestamp cast); no joins, no business logic, no dedupe.
+    columns:
+      - name: downloaded_at
+        description: Event timestamp, cast to TIMESTAMP.
+        data_tests:
+          - not_null
+      - name: file_name
+        description: Downloaded file name (`file.filename`), e.g. `dbt-2.0.0rc210.tar.gz`.
+      - name: project_name
+        description: PyPI project downloaded (`file.project`), e.g. `dbt`.
+      - name: project_version
+        description: Project version string as published (`file.version`), e.g. `2.0.0rc210`.
+      - name: package_type
+        description: "Distribution type (`file.type`): `sdist` or `bdist_wheel`."
+      - name: installer_name
+        description: Installer that performed the download (`details.installer.name`), e.g. `pip`, `uv`. Null when unreported.
+      - name: installer_version
+        description: Installer version (`details.installer.version`). Null when unreported.
+      - name: python_version
+        description: Requesting interpreter version (`details.python`), e.g. `3.11.16`. Null when unreported.
+      - name: python_implementation
+        description: Requesting interpreter implementation (`details.implementation.name`), e.g. `CPython`.
+      - name: openssl_version
+        description: OpenSSL version string of the requesting environment. Informational only.
+      - name: setuptools_version
+        description: Setuptools version string of the requesting environment. Informational only.
+      - name: os_name
+        description: Operating system name (`details.system.name`), e.g. `Linux`.
+      - name: os_release
+        description: Operating system release (`details.system.release`), e.g. `6.12.94+`.
+      - name: cpu_arch
+        description: CPU architecture as reported (`details.cpu`), e.g. `x86_64`. Normalized downstream.
+      - name: distro
+        description: "Linux distribution STRUCT (`details.distro`: name/version/id/libc). Split into `distro_name`/`distro_version` downstream."
+      - name: is_ci
+        description: Whether the download ran in CI (`details.ci`). Null when unreported.
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country code of the request.
+      - name: tls_protocol
+        description: TLS protocol version of the request. Informational only.
+      - name: tls_cipher
+        description: TLS cipher suite of the request. Informational only.

@@ -2,8 +2,10 @@
 version: 2
 
 sources:
-- name: external_source
-  database: "{{ env_var('TRANSFORM_DATABASE', 'pypi_remote') }}"
-  schema: "{{ env_var('TRANSFORM_SCHEMA', 'main') }}"
-  tables:
-  - name: raw_pypi_downloads
+  - name: external_source
+    description: Raw PyPI file-download events ingested from BigQuery (`bigquery-public-data.pypi.file_downloads`). Nested STRUCTs (`file`, `details`); one row per download event.
+    database: "{{ env_var('TRANSFORM_DATABASE', 'pypi_remote') }}"
+    schema: "{{ env_var('TRANSFORM_SCHEMA', 'main') }}"
+    tables:
+      - name: raw_pypi_downloads
+        description: Unmodified ingestion landing table. Read only via `stg_pypi__downloads`; never referenced downstream directly.

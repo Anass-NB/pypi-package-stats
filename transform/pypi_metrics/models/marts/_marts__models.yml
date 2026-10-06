@@ -1,0 +1,150 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Calendar dates from min to max event date. No Unknown member (downloaded_at is NOT NULL by staging contract).
+    columns:
+      - name: date_key
+        description: YYYYMMDD integer.
+        data_tests:
+          - not_null
+          - unique
+      - name: date_day
+        description: Calendar date.
+        data_tests:
+          - not_null
+
+  - name: dim_project
+    description: Type 1 project dimension. See snapshots/snp_project.sql for the disabled future SCD2 path.
+    columns:
+      - name: project_key
+        description: Surrogate key (hash of project_name; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+      - name: project_name
+        description: PyPI project name.
+        data_tests:
+          - not_null
+
+  - name: dim_project_version
+    description: One member per (project, version) string with numeric parts and version_sort_key for true version order (Q1).
+    columns:
+      - name: version_key
+        description: Surrogate key (hash of project + version; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+      - name: project_version
+        description: Version string as published.
+        data_tests:
+          - not_null
+      - name: version_sort_key
+        description: Zero-padded sortable version key; prereleases sort before finals.
+        data_tests:
+          - not_null
+
+  - name: dim_file
+    description: File/build dimension with wheel tags; compare build_python_version to dim_python for Q5.
+    columns:
+      - name: file_key
+        description: Surrogate key (hash of file attributes; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+      - name: file_name
+        description: Downloaded file name.
+        data_tests:
+          - not_null
+
+  - name: dim_python
+    description: Runtime Python dimension; use python_major_minor for monthly share (Q2).
+    columns:
+      - name: python_key
+        description: Surrogate key (hash of full version + implementation; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+      - name: python_major_minor
+        description: Short version (`3.11`) for share analysis.
+        data_tests:
+          - not_null
+
+  - name: dim_installer
+    description: Grain (name, version, traffic_type); use traffic_type for Q4.
+    columns:
+      - name: installer_key
+        description: Surrogate key (hash of name + version + traffic_type; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+      - name: traffic_type
+        description: Human vs automated traffic class.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['interactive', 'ci', 'mirror', 'build_system', 'automated', 'scripted', 'other', 'unknown']
+
+  - name: dim_platform
+    description: OS/CPU/distro; use with dim_country for Q3.
+    columns:
+      - name: platform_key
+        description: Surrogate key (hash of OS + release + arch + distro; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_country
+    description: Countries enriched from the country_codes seed.
+    columns:
+      - name: country_key
+        description: Surrogate key (hash of country_code; '-1' = Unknown).
+        data_tests:
+          - not_null
+          - unique
+      - name: country_code
+        description: ISO 3166-1 alpha-2 code.
+        data_tests:
+          - not_null
+
+  - name: fct_downloads
+    description: Fact at one row per download event. FKs never null (coalesced to '-1').
+    columns:
+      - name: event_id
+        description: Primary key, one per download event (hash + duplicate rank).
+        data_tests:
+          - not_null
+          - unique
+      - name: date_key
+        description: FK to dim_date (YYYYMMDD).
+        data_tests:
+          - not_null
+      - name: project_key
+        description: FK to dim_project.
+        data_tests:
+          - not_null
+      - name: version_key
+        description: FK to dim_project_version.
+        data_tests:
+          - not_null
+      - name: file_key
+        description: FK to dim_file.
+        data_tests:
+          - not_null
+      - name: python_key
+        description: FK to dim_python.
+        data_tests:
+          - not_null
+      - name: installer_key
+        description: FK to dim_installer.
+        data_tests:
+          - not_null
+      - name: platform_key
+        description: FK to dim_platform.
+        data_tests:
+          - not_null
+      - name: country_key
+        description: FK to dim_country.
+        data_tests:
+          - not_null

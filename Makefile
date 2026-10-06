@@ -29,7 +29,7 @@ ingest-test:
 test-md:
 	uv run python -m ingestion.testmd
 
-transform: 
+pypi-transform: 
 	echo "START_DATE: $(START_DATE)"
 	echo "END_DATE: $(END_DATE)"
 	dbt run --project-dir transform/pypi_metrics --vars "{START_DATE: $(START_DATE), END_DATE: $(END_DATE)}" --target $(DBT_TARGET)

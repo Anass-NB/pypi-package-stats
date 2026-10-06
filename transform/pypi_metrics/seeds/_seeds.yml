@@ -1,0 +1,13 @@
+version: 2
+
+seeds:
+  - name: country_codes
+    description: ISO country codes used to enrich dim_country.
+    columns:
+      - name: country_code
+        data_tests:
+          - not_null
+          - unique
+      - name: country_name
+        data_tests:
+          - not_null

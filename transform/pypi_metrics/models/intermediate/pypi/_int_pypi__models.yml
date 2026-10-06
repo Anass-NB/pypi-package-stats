@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: int_downloads
+    description: Base event table, one row per download event with a unique event_id. Duplicates kept via event_dup_rank suffix.
+    columns:
+      - name: event_id
+        description: Surrogate PK, hash of business columns plus duplicate rank.
+        data_tests:
+          - not_null
+          - unique
+      - name: downloaded_at
+        data_tests:
+          - not_null
+
+  - name: int_python_parsed
+    description: Parsed runtime Python versions (major/minor/patch + major.minor shorthand).
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: int_file_parsed
+    description: Parsed project versions (sortable) and wheel tags (python/abi/platform, build python).
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+      - name: package_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['bdist_wheel', 'sdist']
+
+  - name: int_installer_classified
+    description: Installer names plus traffic_type (interactive/ci/mirror/build_system/automated/scripted/other/unknown).
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+      - name: traffic_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['interactive', 'ci', 'mirror', 'build_system', 'automated', 'scripted', 'other', 'unknown']
+
+  - name: int_platform_normalized
+    description: Normalized OS family and CPU architecture plus raw distro fields.
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: int_downloads_enriched
+    description: Wide table marts read. All dimension-bound columns conformed to 'Unknown' (never null).
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+      - name: project_name
+        data_tests:
+          - not_null
+      - name: country_code
+        data_tests:
+          - not_null
+      - name: python_major_minor
+        data_tests:
+          - not_null
+      - name: traffic_type
+        data_tests:
+          - not_null

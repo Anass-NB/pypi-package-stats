@@ -102,6 +102,12 @@ Use `.env.template` as a template file for `.env` and fill your env variables by
 - Fill your project name and other variables like database name , start and end date , destination storage ...
 - if you're using s3 as a data lake make sure to setup your aws creds 
 
+
+
+
+### Data Modeling 
+
+![datamodeling.png](docs/datamodeling.png)
 ### Environment
 
 Copy the template and fill in your values:

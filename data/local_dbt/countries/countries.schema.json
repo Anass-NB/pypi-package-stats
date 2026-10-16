@@ -1,0 +1,1 @@
+[{"name":"country_code","evidenceType":"string","typeFidelity":"precise"},{"name":"country_name","evidenceType":"string","typeFidelity":"precise"},{"name":"downloads","evidenceType":"number","typeFidelity":"precise"},{"name":"share_pct","evidenceType":"number","typeFidelity":"precise"}]

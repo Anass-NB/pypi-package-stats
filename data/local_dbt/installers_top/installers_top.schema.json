@@ -1,0 +1,1 @@
+[{"name":"installer_name","evidenceType":"string","typeFidelity":"precise"},{"name":"installer_version","evidenceType":"string","typeFidelity":"precise"},{"name":"traffic_type","evidenceType":"string","typeFidelity":"precise"},{"name":"downloads","evidenceType":"number","typeFidelity":"precise"}]

@@ -11,11 +11,15 @@ class PypiJobParameters(BaseModel):
     table_name: str
     gcp_project: str
     timestamp_column: str = "timestamp"
-    destination: Annotated[
-        Union[List[str], str], Field(default=["local"])
-    ]  # local, s3, md
+    destination: Annotated[ Union[List[str], str], Field(description="Destination(s) for loading data into the staging model"),
+]  # local, s3, md ,dbt for loading the data for staging model
     s3_path: Optional[str]
     aws_profile: Optional[str]
+    dbt_duckdb_path: Optional[str] 
+    dbt_database: Optional[str] 
+    dbt_schema: Optional[str]
+    skip_bigquery: bool = False
+    local_csv_path: Optional[str] = None  # Optional path to save the CSV file
 
 
 

@@ -54,6 +54,58 @@ def write_to_md_from_duckdb(
 
 
 
+def write_to_duckdb_dbt_source(duckdb_con,table : str,dbt_duckdb_path : str, database : str, schema : str):
+    """
+    Copy an in-memory table into dbt's local DuckDB file so dbt build --target dev
+    can read it as <database>.<schema>.<table>.
+    """
+    logger.info(f"Writing {table} to local dbt DuckDB: {dbt_duckdb_path}")
+
+    try:
+        duckdb_con.sql(
+            f"ATTACH '{dbt_duckdb_path}' AS {database} (TYPE DUCKDB)"
+        )
+    except Exception:
+        # Already attached from a previous run in the same process
+        pass
+
+    # Create the schema if it isn't the default 'main'
+    if schema != "main":
+        duckdb_con.sql(f"CREATE SCHEMA IF NOT EXISTS {database}.{schema}")
+
+    # Copy the in-memory table into dbt's DuckDB file
+    duckdb_con.sql(
+        f"""
+        CREATE OR REPLACE TABLE {database}.{schema}.{table}
+        AS SELECT * FROM {table}
+        """
+    )
+
+    logger.success(f"Data written to {database}.{schema}.{table}")
+
+
+def load_csv_to_duckdb_memory(
+    duckdb_con,
+    csv_path: str,
+    table_name: str,
+):
+    """
+    Load an existing CSV into an in-memory DuckDB table so the rest of the
+    pipeline can treat it exactly like a BigQuery result.
+    """
+    logger.info(f"Loading CSV {csv_path} into in-memory table {table_name}")
+    duckdb_con.sql(
+        f"""
+        CREATE OR REPLACE TABLE {table_name} AS
+        SELECT * FROM read_csv_auto('{csv_path}')
+        """
+    )
+    logger.success(f"Loaded {table_name} from {csv_path}")
+    
+    
+    
+    
+    
 def load_aws_credentials(duckdb_con, profile_name: str):
     """
     Load AWS credentials from the specified profile in ~/.aws/credentials

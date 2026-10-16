@@ -1,0 +1,11 @@
+# Local Evidence cache (template copy, query cache, user profile) — never commit,
+# historical versions of this folder leaked connection secrets.
+.evidence
+.svelte-kit
+build
+node_modules
+.DS_Store
+static/data
+*.options.yaml
+.vscode/settings.json
+.env

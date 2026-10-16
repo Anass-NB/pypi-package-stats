@@ -1,12 +1,10 @@
-# Pypi Package Stats : Get insights of your python project 🐍 
+# Pypi Package Stats : get insights of your python project 🐍
 
-An end-to-end data engineering project built with **Python**, **DuckDB**, **dbt**, and **MotherDuck** — ingesting raw data, transforming it into analytics-ready models, and serving it through a dashboard.
+An end-to-end data engineering project built with **Python**, **DuckDB**, **dbt**, and **Evidence** — ingesting raw data, transforming it into an analytics-ready star schema, and serving it through an interactive dashboard. Everything runs **locally** on DuckDB (no cloud warehouse), and the dashboard is published as a static site on **GitHub Pages**.
 
+> Live dashboard: https://anass-nb.github.io/pypi-package-stats/
 
 ## High-level architecture
-
-![Architecture](docs/architecture.png)
-
 
 ```mermaid
 flowchart LR
@@ -20,31 +18,31 @@ flowchart LR
         ING["Python + DuckDB<br/>bigquery_scan<br/>(filter pushdown)"]
     end
 
-    subgraph TRANSFORM["TRANSFORM — transform/"]
-        DBT["dbt + DuckDB<br/>(SQL models)"]
+    subgraph TRANSFORM["TRANSFORM — transform/pypi_metrics/"]
+        DBT["dbt + DuckDB<br/>staging → intermediate → marts"]
     end
 
     subgraph STORE["STORAGE"]
-        MD[("MotherDuck")]
+        DUCK[("DuckDB file<br/>dbt_data.duckdb")]
         S3[("AWS S3<br/>(optional)")]
     end
 
-    subgraph LOAD["LOAD — dashboard/"]
-        NEXT["Next.js + TypeScript<br/>Tailwind + shadcn/ui<br/>Recharts · @duckdb/node-api"]
+    subgraph SERVE["SERVE — evidence/"]
+        EV["Evidence<br/>read-only DuckDB source<br/>static site → GitHub Pages"]
     end
 
-    BQ ==> ING ==> MD
-    MD ==> DBT
-    DBT ==> MD
+    BQ ==> ING ==> DUCK
+    DUCK ==> DBT
+    DBT ==> DUCK
     DBT -.-> S3
-    MD ==> NEXT
+    DUCK ==> EV
 ```
 
 The project is a monorepo composed of three parts:
 
-- **Ingestion** — under `ingestion/`: pulls raw data with Python + DuckDB and loads it into MotherDuck (and/or S3).
-- **Transformation** — under `transform/`: dbt (`dbt-duckdb` adapter) models the raw data into clean, query-ready tables.
-- **Visualization** — under `dashboard/`: a front end that queries MotherDuck directly and renders the results.
+- **Ingestion** — under `ingestion/`: pulls raw download events from BigQuery's PyPI public dataset with Python + DuckDB (filter pushdown) and lands them in a local DuckDB file (and/or S3).
+- **Transformation** — under `transform/pypi_metrics/`: dbt (`dbt-duckdb` adapter) models the raw events into a star schema (staging → intermediate → marts: dimensions + fact).
+- **Visualization** — under `evidence/`: an Evidence project that reads the dbt DuckDB file **read-only** and builds a static dashboard deployed to GitHub Pages.
 
 ---
 
@@ -53,12 +51,12 @@ The project is a monorepo composed of three parts:
 | Layer          | Tool                                   |
 |----------------|-----------------------------------------|
 | Language       | Python 3.12                             |
-| Local engine   | [DuckDB](https://duckdb.org/)           |
+| Engine/warehouse | [DuckDB](https://duckdb.org/) (single local file, no MotherDuck) |
 | Transformation | [dbt](https://www.getdbt.com/) (`dbt-duckdb` adapter) |
-| Warehouse      | [MotherDuck](https://motherduck.com/)   |
+| Dashboard      | [Evidence](https://evidence.dev/) (`@evidence-dev/duckdb` source; DuckDB-WASM in the browser) |
+| Hosting        | GitHub Pages (`gh-pages` branch)        |
 | Dependency mgmt| [uv](https://github.com/astral-sh/uv)   |
 | Task runner    | Make                                    |
-| Dashboard      | Node.js front end querying MotherDuckb (Evidence)  |
 
 ---
 
@@ -66,13 +64,13 @@ The project is a monorepo composed of three parts:
 
 ```
 .
-├── docs/                   # Diagrams, screenshots, architecture image
+├── docs/                   # Diagrams, screenshots, data model image
 ├── ingestion/               # Python ingestion pipeline
 ├── transform/                # dbt project
-│   └── <project>_metrics/
-├── dashboard/                # Front end that queries MotherDuck using evidence
+│   └── pypi_metrics/
+├── evidence/                 # Evidence dashboard (queries + pages)
 ├── Makefile                  # Pipeline shortcuts
-├── env.template               # Environment variable template
+├── .env.template             # Environment variable template
 ├── pyproject.toml
 └── README.md
 ```
@@ -86,8 +84,8 @@ The project is a monorepo composed of three parts:
 - Python 3.12
 - [uv](https://github.com/astral-sh/uv) for Python package management
 - [Make](https://www.gnu.org/software/make/manual/make.html)
-- Node.js (only needed for the dashboard)
-- A [MotherDuck](https://app.motherduck.com/) account and token
+- Node.js 18+ (only needed for the dashboard)
+- A GCP service-account JSON to scan the BigQuery public dataset (only needed to re-ingest)
 
 ### Setup
 
@@ -96,34 +94,20 @@ git clone https://github.com/Anass-NB/pypi-package-stats.git
 cd pypi-package-stats
 ```
 
-Use `.env.template` as a template file for `.env` and fill your env variables by: 
-- get the json file of the gcp to get the data from bigquery 
-- if are using motherDuck get your token from motherDuck UI
-- Fill your project name and other variables like database name , start and end date , destination storage ...
-- if you're using s3 as a data lake make sure to setup your aws creds 
-
-
-
-
-### Data Modeling 
-
-![datamodeling.png](docs/datamodeling.png)
-### Environment
-
-Copy the template and fill in your values:
+Copy the environment template and fill in your values:
 
 ```bash
-cp env.template .env
+cp .env.template .env
 ```
 
-```env
-DATABASE_NAME=<motherduck_database_name>
-START_DATE=2024-01-01
-END_DATE=2024-12-31
-motherduck_token=<your_motherduck_token>
-TRANSFORM_S3_PATH_OUTPUT=s3://your-bucket/output/   # optional
-AWS_PROFILE=default                                  # optional
-```
+- `GOOGLE_APPLICATION_CREDENTIALS` — path to the GCP service-account JSON
+- `START_DATE` / `END_DATE` — ingestion window
+- `DBT_DUCKDB_PATH` / `DBT_DATABASE` / `DBT_SCHEMA` — where dbt writes the local DuckDB file
+- `SKIP_BIGQUERY`, `DESTINATION`, `LOCAL_CSV_PATH` — ingestion behavior (local-first by default)
+
+### Data Modeling
+
+![datamodeling.png](docs/datamodeling.png)
 
 ---
 
@@ -139,32 +123,33 @@ make ingest-test
 **Transformation (dbt)**
 
 ```bash
-make transform START_DATE=2024-01-01 END_DATE=2024-01-31 DBT_TARGET=dev   # local DuckDB
-make transform START_DATE=2024-01-01 END_DATE=2024-01-31 DBT_TARGET=prod  # MotherDuck
-make transform-test
+make pypi-transform   # dbt seed + dbt run (star schema in the local DuckDB file)
 ```
 
-**Dashboard**
+**Dashboard (Evidence)**
 
 ```bash
-cd dashboard
-npm install
-npm run dev   # http://localhost:3000
+make evidence-install   # first time only
+make evidence-dev       # dev server → http://localhost:3000/pypi-package-stats/
+make evidence-preview   # serve the production build locally → http://localhost:4173/pypi-package-stats/
+make evidence-build     # rebuild sources from DuckDB + strict static build
+make evidence-deploy    # build + push the site to the gh-pages branch
 ```
+
+Typical loop after new data: `make pypi-transform` → `make evidence-dev` (or `evidence-deploy`).
 
 ---
 
 ## Roadmap
 
 - [x] Local ingestion pipeline (Python + DuckDB)
-- [x] dbt transformation layer with dev/prod targets
-- [x] Dashboard for visualizing results
+- [x] dbt transformation layer (staging → intermediate → marts star schema)
+- [x] Dashboard for visualizing results (Evidence, local DuckDB source)
+- [x] Dashboard deployed to GitHub Pages
 - [ ] CI/CD for automated dbt runs and tests
 - [ ] Orchestration : Schedule the data pipeline to be daily running
-- [ ] Deploy data pipeline 
-- [ ] Deploy dashboard (e.g. Vercel)
-- [ ] write Unit tests for ingestion and transformation layers
-
+- [ ] Deploy data pipeline
+- [ ] Write unit tests for ingestion and transformation layers
 
 ---
 

@@ -1,4 +1,14 @@
 
+/*
+Staging contract: expose raw event fields with light casting only, no business logic.
+details/file arrive as struct-like text; missing values are serialized as the
+literal text 'NULL' (e.g. 'python': NULL) and regex misses come back as ''.
+Both are normalized to SQL NULL here so downstream 'Unknown' conforming works
+from real nulls. Installer regexes are scoped to the installer struct: when an
+installer is missing, an unscoped name/version pattern would grab values from
+the implementation struct instead.
+*/
+
 WITH source AS (
     SELECT *
     FROM {{ source('external_source', 'raw_ingestr_pypi_downloads') }}
@@ -20,29 +30,29 @@ renamed AS (
             AS package_type,
 
         -- Installer
-        trim(regexp_extract(details, '''name'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''installer'': \{[^}]*''name'': ([^,}]+)', 1)), ''), 'NULL')
             AS installer_name,
-        trim(regexp_extract(details, '''version'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''installer'': \{[^}]*''version'': ([^,}]+)', 1)), ''), 'NULL')
             AS installer_version,
 
         -- Python environment
-        trim(regexp_extract(details, '''python'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''python'': ([^,}]+)', 1)), ''), 'NULL')
             AS python_version,
-        trim(regexp_extract(details, '''implementation'': \{[^}]*''name'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''implementation'': \{[^}]*''name'': ([^,}]+)', 1)), ''), 'NULL')
             AS python_implementation,
-        trim(regexp_extract(details, '''openssl_version'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''openssl_version'': ([^,}]+)', 1)), ''), 'NULL')
             AS openssl_version,
-        trim(regexp_extract(details, '''setuptools_version'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''setuptools_version'': ([^,}]+)', 1)), ''), 'NULL')
             AS setuptools_version,
 
         -- Platform
-        trim(regexp_extract(details, '''system'': \{[^}]*''name'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''system'': \{[^}]*''name'': ([^,}]+)', 1)), ''), 'NULL')
             AS os_name,
-        trim(regexp_extract(details, '''system'': \{[^}]*''release'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''system'': \{[^}]*''release'': ([^,}]+)', 1)), ''), 'NULL')
             AS os_release,
-        trim(regexp_extract(details, '''cpu'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''cpu'': ([^,}]+)', 1)), ''), 'NULL')
             AS cpu_arch,
-        trim(regexp_extract(details, '''distro'': ([^,}]+)', 1))
+        nullif(nullif(trim(regexp_extract(details, '''distro'': ([^,}]+)', 1)), ''), 'NULL')
             AS distro,
         try_cast(trim(regexp_extract(details, '''ci'': ([^,}]+)', 1)) as boolean)
             AS is_ci,

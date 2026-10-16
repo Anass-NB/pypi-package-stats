@@ -40,14 +40,14 @@ select
         else cpu_arch
     end as cpu_norm,
 
-    -- Distro metadata stored as VARCHAR
-    trim(regexp_extract(distro, '''name'': ([^,}]+)', 1))
+    -- Distro metadata stored as VARCHAR; ''/'NULL' text normalized to NULL
+    nullif(nullif(trim(regexp_extract(distro, '''name'': ([^,}]+)', 1)), ''), 'NULL')
         as distro_name,
 
-    trim(regexp_extract(distro, '''version'': ([^,}]+)', 1))
+    nullif(nullif(trim(regexp_extract(distro, '''version'': ([^,}]+)', 1)), ''), 'NULL')
         as distro_version,
 
-    trim(regexp_extract(distro, '''id'': ([^,}]+)', 1))
+    nullif(nullif(trim(regexp_extract(distro, '''id'': ([^,}]+)', 1)), ''), 'NULL')
         as distro_id
 
 from downloads

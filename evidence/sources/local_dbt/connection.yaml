@@ -1,0 +1,8 @@
+# Local DuckDB built by dbt (`make pypi-transform` in the repo root).
+# `filename` is resolved relative to this source directory and the database is
+# opened READ_ONLY, so the dashboard can never mutate the dbt artifact.
+# Path walks up: sources/local_dbt -> sources -> evidence -> repo root.
+type: duckdb
+name: local_dbt
+options:
+  filename: ../../../transform/pypi_metrics/dbt_data.duckdb

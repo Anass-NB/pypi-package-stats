@@ -41,3 +41,27 @@ pypi-transform:
 	dbt seed --project-dir transform/pypi_metrics --target $(DBT_TARGET)
 	dbt run --project-dir transform/pypi_metrics --vars "{START_DATE: $(START_DATE), END_DATE: $(END_DATE)}" --target $(DBT_TARGET)
 
+
+evidence-install:
+	cd evidence && npm install
+
+
+evidence-sources:
+	cd evidence && npm run sources
+
+
+evidence-dev:
+	cd evidence && npm run dev
+
+
+evidence-preview:
+	cd evidence && npm run preview
+
+
+evidence-build:
+	cd evidence && npm run sources && npm run build:strict
+
+
+evidence-deploy: evidence-build
+	cd evidence && npm run deploy
+

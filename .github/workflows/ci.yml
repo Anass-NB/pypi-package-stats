@@ -40,9 +40,6 @@ jobs:
                 path: ${{ env.DUCKDB_PATH }}
           EOF
 
-      - name: Run dbt seed (load seed data into DuckDB)
-        run: dbt seed --project-dir transform/pypi_metrics --target $DBT_TARGET
-
       - name: Generate dbt docs
         run: dbt docs generate --project-dir transform/pypi_metrics --target $DBT_TARGET
 

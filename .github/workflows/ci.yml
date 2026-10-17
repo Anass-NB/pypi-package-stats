@@ -41,7 +41,7 @@ jobs:
           EOF
 
       - name: Install dbt packages
-        run: dbt deps
+        run: dbt deps --project-dir transform/pypi_metrics --profiles-dir transform/pypi_metrics
 
       - name: Generate dbt docs
         run: dbt docs generate --project-dir transform/pypi_metrics --profiles-dir transform/pypi_metrics --target $DBT_TARGET

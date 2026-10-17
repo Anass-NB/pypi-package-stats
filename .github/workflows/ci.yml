@@ -40,6 +40,9 @@ jobs:
                 path: ${{ env.DUCKDB_PATH }}
           EOF
 
+      - name: Install dbt packages
+        run: dbt deps
+
       - name: Generate dbt docs
         run: dbt docs generate --project-dir transform/pypi_metrics --profiles-dir transform/pypi_metrics --target $DBT_TARGET
 

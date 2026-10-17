@@ -41,7 +41,7 @@ jobs:
           EOF
 
       - name: Generate dbt docs
-        run: dbt docs generate --project-dir transform/pypi_metrics --target $DBT_TARGET
+        run: dbt docs generate --project-dir transform/pypi_metrics --profiles-dir transform/pypi_metrics --target $DBT_TARGET
 
       - name: Deploy dbt docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

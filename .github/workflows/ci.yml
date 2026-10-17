@@ -1,0 +1,55 @@
+name: CI - Deploy dbt docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'dbt target profile to use'
+        required: false
+        default: 'dev'
+
+jobs:
+  deploy-dbt-docs:
+    runs-on: ubuntu-latest
+    env:
+      DBT_TARGET: ${{ github.event.inputs.target || 'dev' }}
+      # Local DuckDB file created in CI for docs generation
+      DUCKDB_PATH: /tmp/dbt_data.duckdb
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dbt-duckdb adapter
+        run: pip install dbt-duckdb
+
+      - name: Create dbt profiles.yml
+        run: |
+          cat > transform/pypi_metrics/profiles.yml <<EOF
+          pypi_metrics:
+            target: ${{ env.DBT_TARGET }}
+            outputs:
+              ${{ env.DBT_TARGET }}:
+                type: duckdb
+                path: ${{ env.DUCKDB_PATH }}
+          EOF
+
+      - name: Run dbt seed (load seed data into DuckDB)
+        run: dbt seed --project-dir transform/pypi_metrics --target $DBT_TARGET
+
+      - name: Generate dbt docs
+        run: dbt docs generate --project-dir transform/pypi_metrics --target $DBT_TARGET
+
+      - name: Deploy dbt docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: transform/pypi_metrics/target
+          destination_dir: dbt-docs
+          keep_files: true
